@@ -4,52 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Playstation</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-        html, body {
-            height: 100%;
-            padding: 0;
-            margin: 0;
-            overflow-y: hidden;
-        }
-        .container {
-            width: 95%;
-            max-width: 800px;
-            height: calc(100% - 80px);
-            border: solid black 1px;
-            margin: 0 auto;
-            margin-top: 25px;
-        }
-
-        .search {
-            display: flex;
-            align-items: center;
-            height: 150px;
-            border-bottom: solid black 1px;
-            padding: 30px;
-        }
-
-        .results {
-            overflow-y: scroll;
-            height: calc(100% - 150px);
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .stream {
-            display: flex;
-            color: black;
-            padding: 8px; 
-            cursor: pointer;
-            text-decoration: none;
-        }
-    </style>
+    <title>Twitchey</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     
@@ -59,9 +15,9 @@
             <input id="search-input" placeholder="Search query..." value="super smash bros. ultimate" type="text">
             <button id="search-button">Search</button>
         </div>
-
+        Results: <span id="results-count">0</span>
         <div id="results" class="results">
-
+            
 
         </div>
         <button id="load-more-button" class="hidden">Load More</button>
@@ -70,20 +26,22 @@
 
     <script>
         let cursor;
+        let resultsCount = 0;
+        const resultsCountElement = document.getElementById('results-count');
         const searchInput = document.getElementById('search-input');
         const searchButton = document.getElementById('search-button');
 
         const results = document.getElementById('results');
         const loadMoreButton = document.getElementById('load-more-button');
 
-        function get(thing, x) {
+        function get(type, x) {
             const urls = {
                 game: 'https://api.twitch.tv/helix/games?name=',
                 stream: 'https://api.twitch.tv/helix/streams?game_id=',
                 paginate: 'https://api.twitch.tv/helix/streams?after='+cursor+'&game_id=',
                 user: 'https://api.twitch.tv/helix/users?'
             };
-            const url = urls[thing];
+            const url = urls[type];
             return new Promise(function(resolve, reject) {
                 let xhttp = new XMLHttpRequest();
                 xhttp.onreadystatechange = function() {
@@ -103,7 +61,7 @@
                 results.innerHTML += `
                     <a class="stream" href="${stream.url}" target="_blank">
                         <img src="${stream.thumbnail_url.replace('-{width}x{height}', '-100x100')}">
-                        <div style="padding: 5px">
+                        <div style="padding: 0 15px">
                             <h4>${stream.title}</h4>
                             <p>
                                 ${searchInput.value.charAt(0).toUpperCase() + searchInput.value.slice(1)} - ${stream.viewer_count} viewers
@@ -145,8 +103,11 @@
                 return addUsers(streamsData);
             })
             .then(function(streamsData) {
+                resultsCount = type === 'paginate' ? resultsCount + streamsData.length : streamsData.length;
+                console.log(resultsCount)
                 showStreams(streamsData);
                 loadMoreButton.classList.remove('hidden');
+                resultsCountElement.innerHTML = resultsCount;
             });
         }
 

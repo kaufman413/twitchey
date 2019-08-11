@@ -15,111 +15,11 @@
             <input id="search-input" placeholder="Search query..." value="super smash bros. ultimate" type="text">
             <button id="search-button">Search</button>
         </div>
-        Results: <span id="results-count">0</span>
-        <div id="results" class="results">
-            
-
-        </div>
+            Results: <span id="results-count">0</span>
+        <div id="results" class="results"></div>
         <button id="load-more-button" class="hidden">Load More</button>
     </div>
 
-
-    <script>
-        let cursor;
-        let resultsCount = 0;
-        const resultsCountElement = document.getElementById('results-count');
-        const searchInput = document.getElementById('search-input');
-        const searchButton = document.getElementById('search-button');
-
-        const results = document.getElementById('results');
-        const loadMoreButton = document.getElementById('load-more-button');
-
-        function get(type, x) {
-            const urls = {
-                game: 'https://api.twitch.tv/helix/games?name=',
-                stream: 'https://api.twitch.tv/helix/streams?game_id=',
-                paginate: 'https://api.twitch.tv/helix/streams?after='+cursor+'&game_id=',
-                user: 'https://api.twitch.tv/helix/users?'
-            };
-            const url = urls[type];
-            return new Promise(function(resolve, reject) {
-                let xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = function() {
-                    if (this.readyState === 4 && this.status === 200) {
-                        resolve(JSON.parse(xhttp.responseText));
-                    }
-                };
-                xhttp.open("GET", url + x, true);
-                xhttp.setRequestHeader('Client-ID', 'zqtc5nfsguwsgmykz01xzedvs1ygiu');
-                xhttp.send();
-            });
-        }
-
-        function showStreams(streams) {
-            console.log(streams);
-            streams.forEach(function(stream) {
-                results.innerHTML += `
-                    <a class="stream" href="${stream.url}" target="_blank">
-                        <img src="${stream.thumbnail_url.replace('-{width}x{height}', '-100x100')}">
-                        <div style="padding: 0 15px">
-                            <h4>${stream.title}</h4>
-                            <p>
-                                ${searchInput.value.charAt(0).toUpperCase() + searchInput.value.slice(1)} - ${stream.viewer_count} viewers
-                                <br>${stream.description}
-                            </p>
-                        </div>
-                    </a>
-                `;
-            });
-        }
-
-        function addUsers(streamsData) {
-            const userIds = streamsData.data.map(function(stream) {
-                return stream.user_id;
-            });
-            return new Promise(function(resolve, reject) {
-                get('user', userIds.map(function(userID) {return `id=${userID}&`}).join(''))
-                .then(function(users) {
-                    console.log(users);
-                    resolve(streamsData.data.map(function(stream, index) {
-                        console.log(stream, index)
-                        return {
-                            ...stream,
-                            url: 'https://twitch.tv/' + users.data[index].login,
-                            description: users.data[index].description
-                        }
-                    }))
-                })
-            })
-        }
-
-        function fetchStreams(type) {
-            get('game', searchInput.value)
-            .then(function(json) {
-                return get(type, json.data[0].id);
-            })
-            .then(function(streamsData) {
-                cursor = streamsData.pagination.cursor;
-                return addUsers(streamsData);
-            })
-            .then(function(streamsData) {
-                resultsCount = type === 'paginate' ? resultsCount + streamsData.length : streamsData.length;
-                console.log(resultsCount)
-                showStreams(streamsData);
-                loadMoreButton.classList.remove('hidden');
-                resultsCountElement.innerHTML = resultsCount;
-            });
-        }
-
-
-        searchButton.addEventListener('click', function() {
-            results.innerHTML = '';
-            fetchStreams('stream');
-        });
-
-        loadMoreButton.addEventListener('click', function() {
-            fetchStreams('paginate');
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>

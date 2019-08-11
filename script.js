@@ -87,7 +87,7 @@ function fetchStreams(type) {
         loadMoreButton.classList.remove('hidden');
         resultsCountElement.innerHTML = resultsCount;
         if (type === 'paginate')
-            results.scrollBy(0, 100);
+            results.scrollBy(0, 20);
     })
 }
 

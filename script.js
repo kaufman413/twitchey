@@ -3,17 +3,16 @@ let resultsCount = 0;
 const resultsCountElement = document.getElementById('results-count');
 const searchInput = document.getElementById('search-input');
 const searchButton = document.getElementById('search-button');
-
 const results = document.getElementById('results');
 const loadMoreButton = document.getElementById('load-more-button');
-
+const loadingOverlay = document.getElementById('loading-overlay');
 // the xhr call to any of the 4 api endpoints listed below
 function get(type, x) {
     const urls = {
         game: 'https://api.twitch.tv/helix/games?name=',
         stream: 'https://api.twitch.tv/helix/streams?game_id=',
-        paginate: 'https://api.twitch.tv/helix/streams?after='+cursor+'&game_id=',
-        user: 'https://api.twitch.tv/helix/users?'
+        user: 'https://api.twitch.tv/helix/users?',
+        paginate: 'https://api.twitch.tv/helix/streams?after='+cursor+'&game_id=' // if a cursor changes, it will be updated here when this function runs
     };
     const url = urls[type];
     return new Promise(function(resolve, reject) {
@@ -21,6 +20,9 @@ function get(type, x) {
         xhr.onreadystatechange = function() {
             if (this.readyState === 4 && this.status === 200) {
                 resolve(JSON.parse(xhr.responseText));
+            } else {
+                console.log(type, x)
+                console.log(this.status);
             }
         };
         xhr.open("GET", url + x, true);
@@ -51,9 +53,13 @@ function renderStreamsToScreen(streams) {
 
 // gets the description and the link for the user's stream
 function addUsersToStreamObjects(streamsData) {
+    if (streamsData.data.length < 1) {
+        return new Promise(function(resolve, reject) {resolve()});
+    }
     const userIds = streamsData.data.map(function(stream) {
         return stream.user_id;
     });
+    console.log(userIds)
     return new Promise(function(resolve, reject) {
         get('user', userIds.map(function(userID) {return `id=${userID}&`}).join(''))
         .then(function(users) {
@@ -69,35 +75,41 @@ function addUsersToStreamObjects(streamsData) {
 }
 
 // All API calls to get the streams
+// type can be 'stream' or 'paginate'
 function fetchStreams(type) {
-    get('game', searchInput.value)
-    .then(function(json) {
+    loadingOverlay.classList.remove('hidden');
+    get('game', searchInput.value) // fetches the game id
+    .then(function(json) { // fetches the streams with the given game id
         return get(type, json.data[0].id);
     })
     .catch(function(error) {
-        console.log(error)
-        alert("Couldn't find that game.. =(")
+        alert("Couldn't find that game.. =(\nPlease make sure it is spelled correctly.")
     })
-    .then(function(streamsData) {
-        cursor = streamsData.pagination.cursor;
+    .then(function(streamsData) { //fetches the user objects for each stream
+        cursor = streamsData.pagination.cursor || cursor;
         return addUsersToStreamObjects(streamsData);
     })
-    .then(function(streamsData) {
+    .then(function(streamsData) { // this updates the UI with the new streams and results count
         resultsCount = type === 'paginate' ? resultsCount + streamsData.length : streamsData.length;
         renderStreamsToScreen(streamsData);
         loadMoreButton.classList.remove('hidden');
         resultsCountElement.innerHTML = resultsCount;
-        if (type === 'paginate')
+        if (type === 'paginate') // this pushes the results down a bit so the user can see that new streams have been loaded
             results.scrollBy(0, 20);
+        loadingOverlay.classList.add('hidden');
+    })
+    .catch(function(error) {
+        loadingOverlay.classList.add('hidden');
     })
 }
 
-// button event listeners
+///// button event listeners /////
+// search button
 searchButton.addEventListener('click', function() {
     results.innerHTML = '';
     fetchStreams('stream');
 });
-
+// pagination button
 loadMoreButton.addEventListener('click', function() {
     fetchStreams('paginate');
 });

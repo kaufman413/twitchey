@@ -83,6 +83,9 @@ function fetchStreams(type) {
         return get(type, json.data[0].id);
     })
     .catch(function(error) {
+        resultsCount = 0;
+        resultsCountElement.innerHTML = resultsCount;
+        loadMoreButton.classList.add('hidden');
         alert("Couldn't find that game.. =(\nPlease make sure it is spelled correctly.")
     })
     .then(function(streamsData) { //fetches the user objects for each stream

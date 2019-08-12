@@ -96,8 +96,9 @@ button#load-more-button {
     justify-content: center;
     align-items: center;
     z-index: 1;
+    color: white;
     background-color: rgba(0,0,0,.4);
-    -webkit-text-stroke: 1px #fff;
+    /* -webkit-text-stroke: 1px #fff; */
     animation: animate-loading 1s infinite;
     animation-direction: alternate;
 }

@@ -74,6 +74,7 @@ function addUsersToStreamObjects(streamsData) {
     })
 }
 
+
 // All API calls to get the streams
 // type can be 'stream' or 'paginate'
 function fetchStreams(type) {
@@ -81,12 +82,6 @@ function fetchStreams(type) {
     get('game', searchInput.value) // fetches the game id
     .then(function(json) { // fetches the streams with the given game id
         return get(type, json.data[0].id);
-    })
-    .catch(function(error) {
-        resultsCount = 0;
-        resultsCountElement.innerHTML = resultsCount;
-        loadMoreButton.classList.add('hidden');
-        alert("Couldn't find that game.. =(\nPlease make sure it is spelled correctly.")
     })
     .then(function(streamsData) { //fetches the user objects for each stream
         cursor = streamsData.pagination.cursor || cursor;
@@ -102,7 +97,11 @@ function fetchStreams(type) {
         loadingOverlay.classList.add('hidden');
     })
     .catch(function(error) {
+        resultsCount = 0;
+        resultsCountElement.innerHTML = resultsCount;
+        loadMoreButton.classList.add('hidden');
         loadingOverlay.classList.add('hidden');
+        alert("Couldn't find that game.. =(\nPlease make sure it is spelled correctly.")
     })
 }
 

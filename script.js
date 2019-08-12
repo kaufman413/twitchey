@@ -35,11 +35,12 @@ function renderStreamsToScreen(streams) {
         results.innerHTML += `
             <a class="stream" href="${stream.url}" target="_blank">
                 <img src="${stream.thumbnail_url.replace('-{width}x{height}', '-100x100')}">
-                <div style="padding: 0 15px">
-                    <h4>${stream.title}</h4>
+                <div style="margin: 0 15px; border-bottom: solid rgba(0,0,0,.1) 1px">
+                    <h3 class="stream-name">${stream.title}</h3>
                     <p>
                         ${searchInput.value.charAt(0).toUpperCase() + searchInput.value.slice(1)} - ${stream.viewer_count} viewers
-                        <br>${stream.description}
+                        <br>
+                        ${stream.description}
                     </p>
                 </div>
             </a>
